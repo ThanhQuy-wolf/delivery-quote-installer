@@ -16,7 +16,9 @@ Thực hiện: Thanh Quy — Seminar môn Kiến trúc hướng dịch vụ (SOA
 1. Vào **[Releases](../../releases/latest)**, tải `setup.exe`.
 2. Mở `setup.exe`, chọn thư mục project của bạn. Service được tạo ở
    `<project>\delivery-quote-service`.
-3. Dán `GOONG_API_KEY`, chọn cổng (mặc định 8000), bấm **Cài đặt**.
+3. Chọn nhà cung cấp bản đồ: **Goong Maps** (mặc định) hoặc **Google Maps Platform**. Form chỉ
+   hiện ô key của nhà đã chọn: dán `GOONG_API_KEY` hoặc `GOOGLE_MAPS_API_KEY` (key bản đồ nền
+   không bắt buộc). Chọn cổng (mặc định 8000), bấm **Cài đặt**.
 
 Trình cài tải đúng bản service đi kèm nó từ Releases (có kiểm tra checksum), ghi `.env`, rồi:
 
@@ -24,9 +26,10 @@ Trình cài tải đúng bản service đi kèm nó từ Releases (có kiểm tr
 - **Docker chưa cài hoặc chưa bật** → tạo `.venv`, cài thư viện, chạy uvicorn trong một cửa sổ
   riêng. Cần Python 3.10+. Trình cài không tự bật Docker Desktop.
 
-Xong, nó gọi thử `/api/health` và một lượt Goong để báo key dùng được hay không. Trong thư
-mục service có `start.bat` / `stop.bat` để bật/tắt về sau. Chạy lại `setup.exe` vào cùng
-thư mục là cập nhật; key cũ được điền sẵn, các biến bạn tự thêm trong `.env` được giữ.
+Xong, nó gọi thử `/api/health` và một lượt gọi nhà cung cấp để báo key dùng được hay không.
+Trong thư mục service có `start.bat` / `stop.bat` để bật/tắt về sau. Chạy lại `setup.exe` vào
+cùng thư mục là cập nhật hoặc đổi nhà cung cấp; nhà cung cấp và key cũ được điền sẵn, key của
+nhà kia và các biến bạn tự thêm trong `.env` được giữ.
 
 > ⚠️ `setup.exe` chưa ký số, Windows SmartScreen có thể chặn lần đầu: **More info → Run
 > anyway**. Không muốn chạy exe thì dùng Cách 2.
@@ -37,7 +40,7 @@ Tải `delivery-quote-service-<version>.zip` ở Releases, giải nén vào proj
 
 ```bash
 cd delivery-quote-service
-cp .env.example .env            # điền GOONG_API_KEY
+cp .env.example .env            # điền GOONG_API_KEY (hoặc MAP_PROVIDER=google + GOOGLE_MAPS_API_KEY)
 
 # Chạy bằng Python 3.10+
 pip install -r requirements.txt
@@ -55,6 +58,17 @@ docker compose up -d --build
 |---|---|---|
 | **REST API key** → `GOONG_API_KEY` | Có | Mọi endpoint `/api/...`. Chỉ nằm ở server |
 | **Maptiles key** → `GOONG_MAPTILES_KEY` | Không | Trang bản đồ demo ở `/` và `/api/map/config`. Key này tới browser, nên khoá URL trong dashboard Goong (vd `http://localhost:8000/*`) |
+
+### Hoặc dùng Google Maps Platform
+
+Trong Google Cloud Console, project phải gắn **billing account của Maps Platform**, rồi tạo key:
+
+| Key | Bắt buộc | Dùng cho |
+|---|---|---|
+| **Key server** → `GOOGLE_MAPS_API_KEY` | Có (khi `MAP_PROVIDER=google`) | Bật Places API (New), Geocoding API, Routes API. Chỉ nằm ở server, giới hạn theo IP |
+| **Key bản đồ nền** → `GOOGLE_MAPTILES_KEY` | Không | Chỉ bật Map Tiles API. Key này tới browser, nên khoá theo HTTP referrer (vd `http://localhost:8000/*`) |
+
+Google không có xe tải ở Việt Nam: khi dùng Google, `vehicle=truck` trả `400`.
 
 Mọi lời gọi đều tiêu quota của key trong `.env`, nên mỗi hệ thống dùng key của riêng mình.
 
@@ -120,8 +134,11 @@ Riêng lỗi validate tham số là `422` của FastAPI, `detail` là một mả
 
 | Biến | Mặc định | Ý nghĩa |
 |---|---|---|
-| `GOONG_API_KEY` | *(bắt buộc)* | REST key của Goong. Thiếu thì service không khởi động |
+| `MAP_PROVIDER` | `goong` | Nhà cung cấp bản đồ: `goong` hoặc `google` |
+| `GOONG_API_KEY` | *(bắt buộc khi dùng Goong)* | REST key của Goong. Thiếu thì service không khởi động |
 | `GOONG_MAPTILES_KEY` | *(trống)* | Key bản đồ nền, chỉ cần cho trang demo |
+| `GOOGLE_MAPS_API_KEY` | *(bắt buộc khi dùng Google)* | Key server của Google Maps Platform |
+| `GOOGLE_MAPTILES_KEY` | *(trống)* | Key Map Tiles API, chỉ cần cho trang demo |
 | `PORT` | `8000` | Cổng khi chạy bằng `docker compose` / `start.bat` |
 | `CORS_ORIGINS` | *(trống)* | Frontend nào được gọi thẳng từ trình duyệt, cách nhau bằng dấu phẩy |
 | `BASE_FEE_VND` / `FEE_PER_KM_VND` | `15000` / `3000` | Công thức phí: `cố định + theo km`, làm tròn đến nghìn |
