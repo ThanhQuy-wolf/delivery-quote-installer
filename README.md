@@ -32,9 +32,33 @@ cùng thư mục là cập nhật hoặc đổi nhà cung cấp; nhà cung cấp
 nhà kia và các biến bạn tự thêm trong `.env` được giữ.
 
 > ⚠️ `setup.exe` chưa ký số, Windows SmartScreen có thể chặn lần đầu: **More info → Run
-> anyway**. Không muốn chạy exe thì dùng Cách 2.
+> anyway**. Không muốn chạy exe thì dùng Cách 3.
 
-### Cách 2 — tự cài từ file zip (mọi hệ điều hành)
+### Cách 2 — một lệnh trong terminal (macOS, Linux)
+
+```bash
+curl -fsSL https://github.com/ThanhQuy-wolf/delivery-quote-installer/releases/latest/download/install.sh | sh
+```
+
+
+Cài không hỏi gì (CI, script dựng máy):
+
+```bash
+curl -fsSL https://github.com/ThanhQuy-wolf/delivery-quote-installer/releases/latest/download/install.sh \
+  | sh -s -- --headless --target ~/shop --provider goong --api-key <key>
+```
+
+Thường gặp trên Linux:
+
+| Trình cài báo | Cách sửa |
+|---|---|
+| Cần thêm gói venv | `sudo apt install python3.X-venv` (đúng tên trình cài in ra), rồi chạy lại |
+| Docker không có quyền | `sudo usermod -aG docker $USER`, đăng xuất rồi đăng nhập lại |
+| Thiếu Docker Compose v2 | `sudo apt install docker-compose-plugin`, hoặc chọn chạy bằng Python |
+
+Máy khác (Linux ARM…) chưa có trình cài sẵn: dùng Cách 3.
+
+### Cách 3 — tự cài từ file zip (mọi hệ điều hành)
 
 Tải `delivery-quote-service-<version>.zip` ở Releases, giải nén vào project của bạn rồi:
 
@@ -139,7 +163,7 @@ Riêng lỗi validate tham số là `422` của FastAPI, `detail` là một mả
 | `GOONG_MAPTILES_KEY` | *(trống)* | Key bản đồ nền, chỉ cần cho trang demo |
 | `GOOGLE_MAPS_API_KEY` | *(bắt buộc khi dùng Google)* | Key server của Google Maps Platform |
 | `GOOGLE_MAPTILES_KEY` | *(trống)* | Key Map Tiles API, chỉ cần cho trang demo |
-| `PORT` | `8000` | Cổng khi chạy bằng `docker compose` / `start.bat` |
+| `PORT` | `8000` | Cổng khi chạy bằng `docker compose` / `start.bat` / `start.sh` |
 | `CORS_ORIGINS` | *(trống)* | Frontend nào được gọi thẳng từ trình duyệt, cách nhau bằng dấu phẩy |
 | `BASE_FEE_VND` / `FEE_PER_KM_VND` | `15000` / `3000` | Công thức phí: `cố định + theo km`, làm tròn đến nghìn |
 | `SUGGESTION_LIMIT` | `6` | Số gợi ý mỗi lần gõ |
